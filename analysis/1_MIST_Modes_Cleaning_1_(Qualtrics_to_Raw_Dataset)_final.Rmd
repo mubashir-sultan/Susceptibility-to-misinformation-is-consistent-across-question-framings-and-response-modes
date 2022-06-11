@@ -1,0 +1,85 @@
+---
+title: "1_MIST_Modes_Cleaning_1_(Qualtrics_to_Raw_Dataset)_final"
+author: ""
+date: "2022-06-11"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+#  DATA ANALYSIS SCRIPT #1: C
+## Cleaning script # 1
+## From raw Qualtrics output to raw, uncleaned dataset)
+```{r meta information}
+# Susceptibility to misinformation is consistent 
+# across question framings and response modes and better explained 
+# by open-mindedness and partisanship than analytical thinking
+
+#  Script Authors: Jon Roozenbeek, Rakoen Maertens, Mubashir Sultan
+#  Version: 8 April 2022
+```
+
+```{r libraries}
+library(here)
+```
+
+# LOAD DATASET
+
+Dataset is loaded using the "here" package; this works best when opening the .RProj file in the R project folder found on the OSF.
+
+The below code will also work (except when the "here" package is used to save files such as tables or figures to disk) when using the following code to load the data:
+`setwd("/home/user/[paste here the folder that you want to set as the working directory]")`
+`MIST <- read.csv("MIST Measures Study - Qualtrics Export.csv")[-1:-2,]`
+and proceed from there.
+
+This dataset is not on the OSF as it contains participants' Prolific IDs.
+Script is included here to show how we cleaned the raw Qualtrics data.
+```{r LOAD DATASET}
+# Remove rows 2 and 3 while doing so (default Qualtrics info)
+dat <- read.csv(here::here("Data & Cleaning", "MIST Measures Study - Qualtrics Export.csv"))[-1:-2,]
+View(dat)
+```
+
+
+# REMOVE INVALID CASES
+```{r REMOVE INVALID CASES}
+dim(dat)
+# Remove rows for which column “Informed_Consent” == (blank)
+dat <- dat[which(dat$Informed_consent == "Yes, I agree"),]
+
+# Check for duplicates in column "Prolific_ID", remove duplicates
+dat <- dat[-which(duplicated(dat$Prolific_ID)),]
+
+# Check for duplicates in column "ResponseId", remove duplicates
+dat <- dat[which(!duplicated(dat$ResponseId)),]
+
+# Check for duplicates in column "end', remove duplicates
+dat <- dat[which(dat$end == "Complete"),]
+
+# Remove rows for which column “Finished” == FALSE
+dat <- dat[which(dat$Finished == "TRUE"),]
+
+# Remove rows for which column “Progress” != 100
+dat <- dat[which(dat$Progress == "100"),]
+dim(dat)
+
+# View(dat)
+```
+
+# ANONYMISE DATASET
+```{r ANONYMISE DATASET}
+dat$Prolific_ID <- NULL
+dat$PROLIFIC_PID <- NULL
+dat$ResponseId <- NULL
+dat$Status <- NULL
+dat$DistributionChannel <- NULL
+
+# View(dat)
+```
+
+# SAVE DATASET
+```{r SAVE DATASET}
+write.csv(dat, here::here("Data & Cleaning", "MIST Measures Study - Raw Dataset.csv"), row.names=FALSE)
+
+```
+
